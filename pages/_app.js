@@ -82,13 +82,13 @@ function MyApp({ Component, pageProps }) {
 
     return (
         <WagmiConfig client={client}>
-            <NotificationProvider>
-                {/*<SessionProvider session={pageProps.session} refetchInterval={0}>*/}
-                <ConnectKitProvider theme="auto" mode="auto" options={options}>
+            {/*<SessionProvider session={pageProps.session} refetchInterval={0}>*/}
+            <ConnectKitProvider theme="auto" mode="auto" options={options}>
+                <NotificationProvider>
                     <Component {...pageProps} />
-                </ConnectKitProvider>
-                {/*</SessionProvider>*/}
-            </NotificationProvider>
+                </NotificationProvider>
+            </ConnectKitProvider>
+            {/*</SessionProvider>*/}
         </WagmiConfig>
     )
 }
