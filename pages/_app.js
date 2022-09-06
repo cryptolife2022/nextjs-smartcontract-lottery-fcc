@@ -7,6 +7,7 @@ import { MetaMaskConnector } from "wagmi/connectors/metaMask"
 import { WalletConnectConnector } from "wagmi/connectors/walletConnect"
 import { publicProvider } from "wagmi/providers/public"
 //import { SessionProvider } from "next-auth/react"
+import { NotificationProvider } from "web3uikit"
 import { ConnectKitProvider, getDefaultClient } from "connectkit"
 
 const hardhatId = process.env.HARDHAT_ID
@@ -81,11 +82,13 @@ function MyApp({ Component, pageProps }) {
 
     return (
         <WagmiConfig client={client}>
-            {/*<SessionProvider session={pageProps.session} refetchInterval={0}>*/}
-            <ConnectKitProvider theme="auto" mode="auto" options={options}>
-                <Component {...pageProps} />
-            </ConnectKitProvider>
-            {/*</SessionProvider>*/}
+            <NotificationProvider>
+                {/*<SessionProvider session={pageProps.session} refetchInterval={0}>*/}
+                <ConnectKitProvider theme="auto" mode="auto" options={options}>
+                    <Component {...pageProps} />
+                </ConnectKitProvider>
+                {/*</SessionProvider>*/}
+            </NotificationProvider>
         </WagmiConfig>
     )
 }
