@@ -141,10 +141,10 @@ function LotteryEntrance() {
             console.log(`Signed in as ${session.user.email}`)
             break
         case "loading":
-            console.log("Signing in ...")
+            //console.log("Signing in ...")
             break
         default:
-            console.log(`Signed in as ${status}`)
+        //console.log(`Signed in as ${status}`)
     }
 
     const dispatch = useNotification()
