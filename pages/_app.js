@@ -6,7 +6,7 @@ import { InjectedConnector } from "wagmi/connectors/injected"
 import { MetaMaskConnector } from "wagmi/connectors/metaMask"
 import { WalletConnectConnector } from "wagmi/connectors/walletConnect"
 import { publicProvider } from "wagmi/providers/public"
-//import { SessionProvider } from "next-auth/react"
+import { SessionProvider } from "next-auth/react"
 import { NotificationProvider } from "web3uikit"
 import { ConnectKitProvider, getDefaultClient } from "connectkit"
 
@@ -82,13 +82,13 @@ function MyApp({ Component, pageProps }) {
 
     return (
         <WagmiConfig client={client}>
-            {/*<SessionProvider session={pageProps.session} refetchInterval={0}>*/}
-            <ConnectKitProvider theme="auto" mode="auto" options={options}>
-                <NotificationProvider>
-                    <Component {...pageProps} />
-                </NotificationProvider>
-            </ConnectKitProvider>
-            {/*</SessionProvider>*/}
+            <SessionProvider session={pageProps.session} refetchInterval={0}>
+                <ConnectKitProvider theme="auto" mode="auto" options={options}>
+                    <NotificationProvider>
+                        <Component {...pageProps} />
+                    </NotificationProvider>
+                </ConnectKitProvider>
+            </SessionProvider>
         </WagmiConfig>
     )
 }
