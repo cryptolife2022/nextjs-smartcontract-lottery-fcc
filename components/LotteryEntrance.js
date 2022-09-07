@@ -1,6 +1,7 @@
 import { abi, contractAddresses } from "../constants"
 //import { useWeb3Contract } from "react-moralis"
 //import { useMoralis } from "react-moralis"
+import { useSession } from "next-auth/react"
 import {
     useNetwork,
     useContractRead,
@@ -117,6 +118,35 @@ function writeContract(dataR, lotteryAddress, handleNewNotification) {
 }
 
 function LotteryEntrance() {
+    //
+    // Used for logging into the WEBSITE, not into the wallet
+    //
+    const { data: session, status } = useSession({
+        required: false,
+        onUnauthenticated() {
+            console.log(`Session NOT Authenticated ... redirected to Sign in Page`)
+        },
+    })
+
+    switch (status) {
+        case "authenticated":
+            // {
+            //     user: {
+            //         name: string
+            //         email: string
+            //         image: string
+            //     },
+            //     expires: Date // This is the expiry of the session, not any of the tokens within the session
+            // }
+            console.log(`Signed in as ${session.user.email}`)
+            break
+        case "loading":
+            console.log("Signing in ...")
+            break
+        default:
+            console.log(`Signed in as ${status}`)
+    }
+
     const dispatch = useNotification()
     const { chain } = useNetwork()
     const { chains, error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork({
