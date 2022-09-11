@@ -135,10 +135,11 @@ function LotteryEntrance() {
             //         name: string
             //         email: string
             //         image: string
+            //         address: string
             //     },
             //     expires: Date // This is the expiry of the session, not any of the tokens within the session
             // }
-            console.log(`Signed in as ${JSON.stringify(session.user)}`)
+            //console.log(`Signed in as ${JSON.stringify(session.user)}`)
             break
         case "loading":
             //console.log("Signing in ...")
