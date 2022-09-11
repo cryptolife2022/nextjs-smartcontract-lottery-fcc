@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     try {
         const message = await Moralis.Auth.requestMessage({
             address,
-            chain: 1, // Hardcoded to 1 because Hardhat ChainID isn't supported by Moralis/NextAuth interaction
+            chain: parseInt(chain) != process.env.HARDHAT_ID ? chain : 1, // Hardcoded to 1 because Hardhat ChainID isn't supported by Moralis/NextAuth interaction
             network,
             ...config,
         })
