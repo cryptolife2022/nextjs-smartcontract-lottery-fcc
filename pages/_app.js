@@ -1,4 +1,5 @@
 import "../styles/globals.css"
+import "@rainbow-me/rainbowkit/styles.css"
 
 //import { MoralisProvider } from "react-moralis"
 import { createClient, configureChains, defaultChains, WagmiConfig, chain } from "wagmi"
@@ -8,7 +9,8 @@ import { WalletConnectConnector } from "wagmi/connectors/walletConnect"
 import { publicProvider } from "wagmi/providers/public"
 import { SessionProvider } from "next-auth/react"
 import { NotificationProvider } from "web3uikit"
-import { ConnectKitProvider, getDefaultClient } from "connectkit"
+//import { ConnectKitProvider as RainbowKitProvider, getDefaultClient } from "connectkit"
+import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit"
 
 const hardhatId = process.env.HARDHAT_ID
 const cchains = [
@@ -22,6 +24,7 @@ const cchains = [
     chain.sepolia,
 ]
 
+//const { provider, webSocketProvider, chains } = configureChains(defaultChains, [publicProvider()])
 const { provider, webSocketProvider, chains } = configureChains(cchains, [publicProvider()])
 
 /*
@@ -44,7 +47,7 @@ const client = createClient({
         }),
     ],
 })
-*/
+
 const client = createClient(
     getDefaultClient({
         appName: "Smart Contract Lottery",
@@ -52,6 +55,19 @@ const client = createClient(
         chains,
     })
 )
+*/
+const { connectors } = getDefaultWallets({
+    appName: "Smart Contract Lottery",
+    chains,
+})
+
+const client = createClient({
+    provider,
+    webSocketProvider,
+    autoConnect: true,
+    // added connectors from rainbowkit
+    connectors,
+})
 
 function MyApp({ Component, pageProps }) {
     let options = {
@@ -83,11 +99,12 @@ function MyApp({ Component, pageProps }) {
     return (
         <WagmiConfig client={client}>
             <SessionProvider session={pageProps.session} refetchInterval={0}>
-                <ConnectKitProvider theme="auto" mode="auto" options={options}>
+                {/*<RainbowKitProvider theme="auto" mode="auto" options={options}>*/}
+                <RainbowKitProvider chains={chains}>
                     <NotificationProvider>
                         <Component {...pageProps} />
                     </NotificationProvider>
-                </ConnectKitProvider>
+                </RainbowKitProvider>
             </SessionProvider>
         </WagmiConfig>
     )

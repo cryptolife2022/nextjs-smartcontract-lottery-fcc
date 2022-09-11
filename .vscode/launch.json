@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Next.js: debug server-side",
+            "type": "node-terminal",
+            "request": "launch",
+            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/next",
+            //"command": "NODE_OPTIONS='--inspect=localhost:9229' yarn run dev"
+            "command": "yarn run dev"
+        },
+        {
+            "name": "Next.js: debug client-side",
+            //"type": "pwa-chrome",
+            "type": "chrome",
+            "request": "launch",
+            //"webRoot": "${workspaceFolder}",
+            "url": "http://localhost:3000"
+        },
+        {
+            "name": "Next.js: debug full stack",
+            "type": "node-terminal",
+            "request": "launch",
+            //"command": "NODE_OPTIONS='--inspect=localhost:9229' yarn run dev",
+            "command": "yarn run dev",
+            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/next",
+            "console": "integratedTerminal",
+            //"webRoot": "${workspaceFolder}",
+            "serverReadyAction": {
+                "pattern": "started server on .+, url: (https?://.+)",
+                "uriFormat": "%s",
+                "action": "debugWithChrome"
+            }
+        }
+    ]
+}

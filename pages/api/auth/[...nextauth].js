@@ -19,6 +19,7 @@ export default NextAuth({
                 },
             },
             async authorize(credentials) {
+                console.log("nextauth: - Moralis.start: Begin")
                 try {
                     // "message" and "signature" are needed for authorization
                     // we described them in "credentials" above
@@ -26,15 +27,16 @@ export default NextAuth({
 
                     await Moralis.start({ apiKey: process.env.MORALIS_API_KEY })
 
-                    const { address, profileId } = (
+                    const { address, profileId, expirationTime } = (
                         await Moralis.Auth.verify({ message, signature, network: "evm" })
                     ).raw
 
-                    const user = { address, profileId, signature }
+                    const user = { address, profileId, expirationTime, signature }
                     // returning the user object and creating  a session
+                    console.log("nextauth: - Moralis.start: Finished")
                     return user
                 } catch (e) {
-                    console.error(e)
+                    console.log("nextauth: Error - ", e)
                     return null
                 }
             },
@@ -47,6 +49,7 @@ export default NextAuth({
             return token
         },
         async session({ session, token }) {
+            session.expires = token.user.expirationTime
             session.user = token.user
             return session
         },
