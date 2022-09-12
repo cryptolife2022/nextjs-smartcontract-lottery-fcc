@@ -3,14 +3,20 @@ import "@rainbow-me/rainbowkit/styles.css"
 
 //import { MoralisProvider } from "react-moralis"
 import { createClient, configureChains, defaultChains, WagmiConfig, chain } from "wagmi"
-import { InjectedConnector } from "wagmi/connectors/injected"
-import { MetaMaskConnector } from "wagmi/connectors/metaMask"
-import { WalletConnectConnector } from "wagmi/connectors/walletConnect"
+//import { InjectedConnector } from "wagmi/connectors/injected"
+//import { MetaMaskConnector } from "wagmi/connectors/metaMask"
+//import { WalletConnectConnector } from "wagmi/connectors/walletConnect"
 import { publicProvider } from "wagmi/providers/public"
 import { SessionProvider } from "next-auth/react"
 import { NotificationProvider } from "web3uikit"
 //import { ConnectKitProvider as RainbowKitProvider, getDefaultClient } from "connectkit"
-import { getDefaultWallets, RainbowKitProvider, DisclaimerComponent } from "@rainbow-me/rainbowkit"
+import {
+    connectorsForWallets,
+    wallet,
+    getDefaultWallets,
+    RainbowKitProvider,
+    DisclaimerComponent,
+} from "@rainbow-me/rainbowkit"
 
 const hardhatId = process.env.HARDHAT_ID
 const cchains = [
@@ -27,39 +33,70 @@ const cchains = [
 //const { provider, webSocketProvider, chains } = configureChains(defaultChains, [publicProvider()])
 const { provider, webSocketProvider, chains } = configureChains(cchains, [publicProvider()])
 
+// const needsInjectedWalletFallback =
+//     typeof !window?.ethereum && !window.ethereum.isMetaMask && !window.ethereum.isCoinbaseWallet
+
+const walletConfig = {
+    appName: "Smart Contract Lottery",
+    chains: chains,
+    options: {
+        shimDisconnect: true,
+        shimChainChangedDisconnect: true,
+    },
+}
+
+const connectors = connectorsForWallets([
+    {
+        groupName: "Suggested",
+        wallets: [
+            wallet.metaMask(walletConfig),
+            wallet.rainbow(walletConfig),
+            wallet.coinbase(walletConfig),
+            wallet.walletConnect(walletConfig),
+            wallet.trust(walletConfig),
+            wallet.ledger(walletConfig),
+            wallet.argent(walletConfig),
+            //wallet.injected(walletConfig),
+        ],
+    },
+])
+
 /*
-const client = createClient({
-    provider,
-    autoConnect: true,
-    connectors: [
-        new InjectedConnector({ chains }),
-        new MetaMaskConnector({
-            chains: chains,
-            options: {
-                shimDisconnect: true,
-            },
-        }),
-        new WalletConnectConnector({
-            chains: chains,
-            options: {
-                qrcode: true,
-            },
-        }),
-    ],
-})
+const connectors = [
+    new InjectedConnector({
+        chains: chains,
+        options: {
+            shimDisconnect: true,
+            shimChainChangedDisconnect: true,
+        },
+    }),
+    new MetaMaskConnector({
+        chains: chains,
+        options: {
+            shimDisconnect: true,
+            shimChainChangedDisconnect: true,
+        },
+    }),
+    new WalletConnectConnector({
+        chains: chains,
+        options: {
+            qrcode: true,
+        },
+    }),
+]
 
 const client = createClient(
     getDefaultClient({
         appName: "Smart Contract Lottery",
-        hardhatId,
         chains,
     })
 )
-*/
+
 const { connectors } = getDefaultWallets({
     appName: "Smart Contract Lottery",
     chains,
 })
+*/
 
 const client = createClient({
     provider,
