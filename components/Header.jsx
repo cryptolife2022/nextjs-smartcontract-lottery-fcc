@@ -1,7 +1,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 //import { ConnectKitButton as ConnectButton } from "connectkit"
-import { signIn, useSession } from "next-auth/react"
-import { useAccount, useSignMessage, useNetwork } from "wagmi"
+import { signIn, useSession, signOut } from "next-auth/react"
+import { useAccount, useSignMessage, useNetwork, useDisconnect } from "wagmi"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import axios from "axios"
@@ -32,6 +32,7 @@ export default function Header() {
     const { chain } = useNetwork()
 
     const { signMessageAsync } = useSignMessage()
+    const { disconnectAsync } = useDisconnect()
     const { push } = useRouter()
 
     useEffect(() => {
@@ -42,19 +43,29 @@ export default function Header() {
                     "content-type": "application/json",
                 },
             })
+            console.log("request-message: ", data)
             const message = data.message
-            const signature = await signMessageAsync({ message })
+            try {
+                const signature = await signMessageAsync({ message })
 
-            // redirect user after success authentication to 'userPage' page
-            const { url } = await signIn("credentials", {
-                message,
-                signature,
-                redirect: false, //let user go to "userPage" if they want to ... demo purposes only
-                callbackUrl: userPage,
-            })
-            // instead of using signIn(..., redirect: userPage)
-            // we get the url from callback and push it to the router to avoid page refreshing
-            push(url)
+                console.log("request-message: signature - ", signature)
+                // redirect user after success authentication to 'userPage' page
+                const { url } = await signIn("credentials", {
+                    message,
+                    signature,
+                    redirect: false, //let user go to "userPage" if they want to ... demo purposes only
+                    callbackUrl: userPage,
+                })
+                // instead of using signIn(..., redirect: userPage)
+                // we get the url from callback and push it to the router to avoid page refreshing
+                push(url)
+            } catch (error) {
+                console.log("SignIn Rejected")
+                ;(async () => {
+                    await disconnectAsync()
+                    signOut({ redirect: false })
+                })()
+            }
         }
         if (status === "unauthenticated" && isConnected) {
             handleAuth()

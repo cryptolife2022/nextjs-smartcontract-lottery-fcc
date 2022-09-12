@@ -2,8 +2,9 @@ import { abi, contractAddresses } from "../constants"
 import { subscribe, unsubscribe, publish, useIsSSR } from "./events"
 import { useEffect, useState } from "react"
 //import { useWeb3Contract, useMoralis } from "react-moralis"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import {
+    useDisconnect,
     useAccount,
     useEnsName,
     useNetwork,
@@ -17,6 +18,8 @@ import {
 import { BigNumber, ethers } from "ethers"
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit"
 import { useNotification } from "web3uikit"
+
+const signInPage = "/"
 
 function readContract(chain, entranceFee, numPlayers, recentWinner) {
     let lAddress = chain ? (chain.id in contractAddresses ? contractAddresses[chain.id][0] : 0) : 0
@@ -136,6 +139,7 @@ function LotteryEntrance() {
         },
     })
 
+    const { disconnectAsync } = useDisconnect()
     const { address: walletAddress } = useAccount()
 
     switch (status) {
@@ -333,6 +337,16 @@ function LotteryEntrance() {
                 ) : (
                     <div>Connection to Lottery Not Established</div>
                 )}
+                <button
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
+                    hidden={hideButton || status !== "authenticated"}
+                    onClick={async () => {
+                        await disconnectAsync()
+                        signOut({ redirect: false })
+                    }}
+                >
+                    <div>Sign Out</div>
+                </button>
             </div>
         </div>
     )
