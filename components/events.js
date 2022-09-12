@@ -1,4 +1,6 @@
 //events.js
+import { useEffect, useState } from "react"
+
 function subscribe(eventName, listener) {
     if (typeof document !== "undefined") {
         document.addEventListener(eventName, listener)
@@ -19,4 +21,13 @@ function publish(eventName, data) {
     }
 }
 
-export { publish, subscribe, unsubscribe }
+function useIsSSR() {
+    const [isSSR, setIsSSR] = useState(true)
+
+    // Needed to get rid of Hydration UI error keep popping up
+    // https://github.com/vercel/next.js/discussions/35773
+    useEffect(() => setIsSSR(false), [])
+
+    return isSSR
+}
+export { publish, subscribe, unsubscribe, useIsSSR }

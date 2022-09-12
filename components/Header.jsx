@@ -18,11 +18,11 @@ export default function Header() {
         //status, // : 'connecting' | 'reconnecting' | 'connected' | 'disconnected'
     } = useAccount({
         onConnect({ address, connector, isReconnected }) {
-            console.log("Connected to ", { address, connector, isReconnected })
+            console.log("Connected to Web3 Wallet", { address, connector, isReconnected })
             publish("web3_onConnect", { address, connector, isReconnected })
         },
         onDisconnect() {
-            console.log("Disconnected")
+            console.log("Disconnected from Web3 Wallet")
             publish("web3_onDisconnect")
         },
     })

@@ -1,6 +1,7 @@
 import { abi, contractAddresses } from "../constants"
-//import { useWeb3Contract } from "react-moralis"
-//import { useMoralis } from "react-moralis"
+import { subscribe, unsubscribe, publish, useIsSSR } from "./events"
+import { useEffect, useState } from "react"
+//import { useWeb3Contract, useMoralis } from "react-moralis"
 import { useSession } from "next-auth/react"
 import {
     useAccount,
@@ -13,10 +14,9 @@ import {
     useSwitchNetwork,
     useContractEvent,
 } from "wagmi"
-import { useNotification } from "web3uikit"
-import { useEffect, useState } from "react"
 import { BigNumber, ethers } from "ethers"
-import { subscribe, unsubscribe, publish } from "./events"
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit"
+import { useNotification } from "web3uikit"
 
 function readContract(chain, entranceFee, numPlayers, recentWinner) {
     let lAddress = chain ? (chain.id in contractAddresses ? contractAddresses[chain.id][0] : 0) : 0
@@ -83,6 +83,7 @@ function readContract(chain, entranceFee, numPlayers, recentWinner) {
 }
 
 function writeContract(dataR, lotteryAddress, handleNewNotification) {
+    const addRecentTransaction = useAddRecentTransaction()
     const {
         config: writeConfig,
         error: prepareError,
@@ -108,6 +109,11 @@ function writeContract(dataR, lotteryAddress, handleNewNotification) {
         onSuccess(tx) {
             ;(async () => {
                 console.log("On Contract enterLottery Success", tx) // {hash, wait}
+                addRecentTransaction({
+                    hash: tx.hash,
+                    description: "Entered Smart Contract Lottery",
+                    confirmations: 1,
+                })
                 await tx.wait(1)
                 handleNewNotification()
             })()
@@ -170,7 +176,7 @@ function LotteryEntrance() {
     const [numPlayers, setNumPlayers] = useState(0)
     const [recentWinner, setRecentWinner] = useState("")
     const [lotteryConnector, setLotteryConnector] = useState(null)
-    const [isSSR, setIsSSR] = useState(true)
+    const isSSR = useIsSSR()
 
     const {
         dataR,
@@ -292,12 +298,6 @@ function LotteryEntrance() {
     useEffect(() => {
         console.log(`WalletAddress is now set to : ${walletAddress}`)
     }, [walletAddress])
-
-    // Needed to get rid of Hydration UI error keep popping up
-    // https://github.com/vercel/next.js/discussions/35773
-    useEffect(() => {
-        setIsSSR(false)
-    }, [])
 
     // Have a function to enter the Lottery
     return (

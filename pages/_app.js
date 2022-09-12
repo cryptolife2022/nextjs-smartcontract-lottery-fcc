@@ -10,7 +10,7 @@ import { publicProvider } from "wagmi/providers/public"
 import { SessionProvider } from "next-auth/react"
 import { NotificationProvider } from "web3uikit"
 //import { ConnectKitProvider as RainbowKitProvider, getDefaultClient } from "connectkit"
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit"
+import { getDefaultWallets, RainbowKitProvider, DisclaimerComponent } from "@rainbow-me/rainbowkit"
 
 const hardhatId = process.env.HARDHAT_ID
 const cchains = [
@@ -70,7 +70,27 @@ const client = createClient({
 })
 
 function MyApp({ Component, pageProps }) {
-    let options = {
+    const disclaimer = ({ Text, Link }) => (
+        <Text>
+            By connecting your wallet, you agree to the{" "}
+            <Link
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://en.wikipedia.org/wiki/Terms_of_service"
+            >
+                Terms of Service
+            </Link>{" "}
+            <Link
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://en.wikipedia.org/wiki/Privacy_policy"
+            >
+                Privacy Policy
+            </Link>
+        </Text>
+    )
+    /*
+    const disclaimer = {
         embedGoogleFonts: true,
         //avoidLayoutShift: false,
         //walletConnectName: "Wallet Connect",
@@ -95,12 +115,20 @@ function MyApp({ Component, pageProps }) {
             </>
         ),
     }
+    */
 
     return (
         <WagmiConfig client={client}>
             <SessionProvider session={pageProps.session} refetchInterval={0}>
-                {/*<RainbowKitProvider theme="auto" mode="auto" options={options}>*/}
-                <RainbowKitProvider chains={chains}>
+                {/*<RainbowKitProvider theme="auto" mode="auto" options={disclaimer}>*/}
+                <RainbowKitProvider
+                    chains={chains}
+                    showRecentTransactions={true}
+                    appInfo={{
+                        appName: "Smart Contract Lottery",
+                        disclaimer: disclaimer,
+                    }}
+                >
                     <NotificationProvider>
                         <Component {...pageProps} />
                     </NotificationProvider>
