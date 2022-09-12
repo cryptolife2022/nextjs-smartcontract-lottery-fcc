@@ -7,6 +7,8 @@ import { useRouter } from "next/router"
 import axios from "axios"
 import { publish } from "./events"
 
+const userPage = "/user"
+
 export default function Header() {
     const {
         address,
@@ -43,14 +45,14 @@ export default function Header() {
             const message = data.message
             const signature = await signMessageAsync({ message })
 
-            // redirect user after success authentication to '/user' page
+            // redirect user after success authentication to 'userPage' page
             const { url } = await signIn("credentials", {
                 message,
                 signature,
-                redirect: false, //let user go to /user if they want to ... demo purposes only
-                callbackUrl: "/user",
+                redirect: false, //let user go to "userPage" if they want to ... demo purposes only
+                callbackUrl: userPage,
             })
-            // instead of using signIn(..., redirect: "/user")
+            // instead of using signIn(..., redirect: userPage)
             // we get the url from callback and push it to the router to avoid page refreshing
             push(url)
         }
