@@ -3,6 +3,8 @@ import { abi, contractAddresses } from "../constants"
 //import { useMoralis } from "react-moralis"
 import { useSession } from "next-auth/react"
 import {
+    useAccount,
+    useEnsName,
     useNetwork,
     useContractRead,
     useContractReads,
@@ -128,6 +130,8 @@ function LotteryEntrance() {
         },
     })
 
+    const { address: walletAddress } = useAccount()
+
     switch (status) {
         case "authenticated":
             // {
@@ -235,7 +239,7 @@ function LotteryEntrance() {
     useEffect(() => {
         if (chainId == 0) return
 
-        console.log(`Chain ID Choosen: ${chainId}`)
+        console.log(`Chain ID Choosen: ${chainId}, WalletAddress is: ${walletAddress}`)
         subscribe("web3_onConnect", (e) => {
             setLotteryConnector(e.detail.connector)
             console.log(
@@ -284,6 +288,10 @@ function LotteryEntrance() {
             unsubscribe("lottery_getRecentWinner")
         }
     }, [chainId])
+
+    useEffect(() => {
+        console.log(`WalletAddress is now set to : ${walletAddress}`)
+    }, [walletAddress])
 
     // Needed to get rid of Hydration UI error keep popping up
     // https://github.com/vercel/next.js/discussions/35773
