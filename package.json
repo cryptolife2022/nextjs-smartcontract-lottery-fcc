@@ -24,6 +24,7 @@
     "web3uikit": "^1.0.4"
   },
   "devDependencies": {
+    "@types/react": "18.0.19",
     "autoprefixer": "^10.4.8",
     "eslint": "8.23.0",
     "eslint-config-next": "12.2.5",
