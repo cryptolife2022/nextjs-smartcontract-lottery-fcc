@@ -1,82 +1,15 @@
 import { abi, contractAddresses } from "../constants"
+import { readContract, writeContract, eventContract } from "./wagmiContract"
 import { subscribe, unsubscribe, publish, useIsSSR } from "./events"
 import { useEffect, useState } from "react"
 //import { useWeb3Contract, useMoralis } from "react-moralis"
 import { useSession, signOut } from "next-auth/react"
-import {
-    useDisconnect,
-    useAccount,
-    useEnsName,
-    useNetwork,
-    useContractRead,
-    useContractReads,
-    useContractWrite,
-    usePrepareContractWrite,
-    useSwitchNetwork,
-    useContractEvent,
-} from "wagmi"
+import { useDisconnect, useAccount, useEnsName, useNetwork, useSwitchNetwork } from "wagmi"
 import { BigNumber, ethers } from "ethers"
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit"
 import { useNotification } from "web3uikit"
 
 const signInPage = "/"
-
-function readContract(methods, chain) {
-    let lAddress = chain ? (chain.id in contractAddresses ? contractAddresses[chain.id][0] : 0) : 0
-    let contractReadRCs = []
-    var isSuccessAll = true
-
-    const readConfig = {
-        addressOrName: lAddress,
-        contractInterface: abi,
-        enabled: lAddress ? true : false,
-    }
-
-    methods.forEach((method) => {
-        /* const { data,isSuccess,isError,isLoading,refetch } = */
-        contractReadRCs.push(
-            useContractRead({
-                ...readConfig,
-                functionName: method["func"],
-                onError: method["onError"],
-                onSuccess: method["onSuccess"],
-            })
-        )
-    })
-
-    return { contractReadRCs, lAddress, isSuccessAll }
-}
-
-function writeContract(methods, lotteryAddress) {
-    let writeRCs = []
-    let isBusy = false
-
-    methods.forEach((method, index) => {
-        /*{config,error,isError,isLoading,isFetching}=*/
-        const preWriteRC = usePrepareContractWrite({
-            addressOrName: lotteryAddress,
-            contractInterface: abi,
-            functionName: method["func"],
-            overrides: method["overrides"],
-        })
-
-        writeRCs.push(
-            useContractWrite({
-                ...preWriteRC.config,
-                onError: method["onError"],
-                onSuccess: method["onSuccess"],
-            })
-        )
-
-        isBusy ||=
-            preWriteRC.isLoading ||
-            preWriteRC.isFetching ||
-            writeRCs[index].isLoading ||
-            writeRCs[index].isFetching
-    })
-
-    return { writeRCs, isBusy }
-}
 
 function LotteryEntrance() {
     //
@@ -239,29 +172,23 @@ function LotteryEntrance() {
         lotteryAddress
     )
 
-    useContractEvent({
-        addressOrName: lotteryAddress,
-        contractInterface: abi,
-        eventName: "WinnerPicked",
-        once: true,
-        listener: (event) => {
-            console.log("WinnerPicked - ", event, "numPlayers = ", numPlayers)
-            // Prevent old events from coming through the queue ...
-            if (numPlayers == 0) return
+    eventContract(lotteryAddress, "WinnerPicked", (event) => {
+        console.log("WinnerPicked - ", event, "numPlayers = ", numPlayers)
+        // Prevent old events from coming through the queue ...
+        if (numPlayers == 0) return
 
-            // Notify User
-            dispatch({
-                type: "info",
-                message: "Winner Picked! " + event[1].args["winner"],
-                title: "Lottery Notification",
-                icon: "bell",
-                position: "topR",
-            })
-            // Update Stats on screen
-            publish("lottery_getNumPlayers", { data: 0 })
-            publish("lottery_getRecentWinner", { data: event[1].args["winner"] })
-            // updateUI(false,[false,true,true])
-        },
+        // Notify User
+        dispatch({
+            type: "info",
+            message: "Winner Picked! " + event[1].args["winner"],
+            title: "Lottery Notification",
+            icon: "bell",
+            position: "topR",
+        })
+        // Update Stats on screen
+        publish("lottery_getNumPlayers", { data: 0 })
+        publish("lottery_getRecentWinner", { data: event[1].args["winner"] })
+        // updateUI(false,[false,true,true])
     })
 
     useEffect(() => {
