@@ -19,7 +19,7 @@ export default NextAuth({
                 },
             },
             async authorize(credentials) {
-                console.log("nextauth: - Moralis.start: Begin")
+                //console.log("nextauth: - Moralis.start: Begin")
                 try {
                     // "message" and "signature" are needed for authorization
                     // we described them in "credentials" above
@@ -33,7 +33,7 @@ export default NextAuth({
 
                     const user = { address, profileId, expirationTime, signature }
                     // returning the user object and creating  a session
-                    console.log("nextauth: - Moralis.start: Finished")
+                    //console.log("nextauth: - Moralis.start: Finished")
                     return user
                 } catch (e) {
                     console.log("nextauth: Error - ", e)

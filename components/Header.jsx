@@ -1,39 +1,23 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 //import { ConnectKitButton as ConnectButton } from "connectkit"
-import { signIn, useSession, signOut } from "next-auth/react"
-import { useAccount, useSignMessage, useNetwork, useDisconnect } from "wagmi"
+import { signIn, useSession } from "next-auth/react"
+import { useSignMessage, useNetwork, useDisconnect } from "wagmi"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import axios from "axios"
-import { publish } from "./utils/events"
+import { useAccount } from "./utils/wagmiAccount"
 
 const userPage = "/user"
+const signOutRedirectPath = "/"
 
 export default function Header() {
-    const {
-        address,
-        connector,
-        isConnecting,
-        isReconnecting,
-        isConnected,
-        isDisconnected,
-        //status, // : 'connecting' | 'reconnecting' | 'connected' | 'disconnected'
-    } = useAccount({
-        onConnect({ address, connector, isReconnected }) {
-            console.log("Connected to Web3 Wallet", { address, connector, isReconnected })
-            publish("web3_onConnect", { address, connector, isReconnected })
-        },
-        onDisconnect() {
-            console.log("Disconnected from Web3 Wallet")
-            publish("web3_onDisconnect")
-        },
-    })
     const { status } = useSession()
     const { chain } = useNetwork()
 
     const { signMessageAsync } = useSignMessage()
-    const { disconnectAsync } = useDisconnect()
+    const { disconnect } = useDisconnect()
     const { push } = useRouter()
+    const { address, isConnected } = useAccount()
 
     useEffect(() => {
         const handleAuth = async () => {
@@ -61,10 +45,7 @@ export default function Header() {
                 push(url)
             } catch (error) {
                 console.log("SignIn Rejected")
-                ;(async () => {
-                    await disconnectAsync()
-                    signOut({ redirect: false })
-                })()
+                disconnect()
             }
         }
         if (status === "unauthenticated" && isConnected) {

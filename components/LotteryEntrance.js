@@ -1,14 +1,16 @@
 import { readContract, writeContract, eventContract } from "./utils/wagmiContract"
+import { useAccount } from "./utils/wagmiAccount"
 import { subscribe, unsubscribe, publish, useIsSSR } from "./utils/events"
 import { useEffect, useState } from "react"
 import { BigNumber, ethers } from "ethers"
 //import { useWeb3Contract, useMoralis } from "react-moralis"
-import { useSession, signOut } from "next-auth/react"
-import { useDisconnect, useAccount, useEnsName, useNetwork, useSwitchNetwork } from "wagmi"
+import { useSession } from "next-auth/react"
+import { useDisconnect, useEnsName, useNetwork, useSwitchNetwork } from "wagmi"
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit"
 import { useNotification } from "web3uikit"
 
 const signInPage = "/"
+const signOutRedirectPath = "/"
 
 function LotteryEntrance() {
     //
@@ -23,7 +25,7 @@ function LotteryEntrance() {
     //
     // Connecting with Web3 Wallet
     //
-    const { disconnectAsync } = useDisconnect()
+    const { disconnect } = useDisconnect()
     const { address: walletAddress } = useAccount()
     const { chain } = useNetwork()
     const { chains, error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork({
@@ -309,9 +311,8 @@ function LotteryEntrance() {
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
                     hidden={status !== "authenticated"}
-                    onClick={async () => {
-                        await disconnectAsync()
-                        signOut({ redirect: false })
+                    onClick={() => {
+                        disconnect()
                     }}
                 >
                     <div>Sign Out</div>

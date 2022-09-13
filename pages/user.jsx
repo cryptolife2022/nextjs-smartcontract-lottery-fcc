@@ -2,12 +2,16 @@ import { getSession, signOut } from "next-auth/react"
 import { useRouter } from "next/router"
 import { useDisconnect } from "wagmi"
 
-//const signInPage = "/signin"
+import { useAccount } from "../components/utils/wagmiAccount"
+
+const userPage = "/user"
+const signOutRedirectPath = "/"
 const signInPage = "/"
 
 function User({ user }) {
     const { push } = useRouter()
-    const { disconnectAsync } = useDisconnect()
+    const { disconnect } = useDisconnect()
+    const { address, isConnected } = useAccount(signOutRedirectPath)
 
     return (
         <div>
@@ -15,9 +19,8 @@ function User({ user }) {
             <pre>{JSON.stringify(user, null, 2)}</pre>
             <button
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
-                onClick={async () => {
-                    await disconnectAsync()
-                    signOut({ redirect: signInPage })
+                onClick={() => {
+                    disconnect()
                 }}
             >
                 <div>Sign Out</div>
