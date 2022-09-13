@@ -68,7 +68,11 @@ function writeContract(methods, lotteryAddress) {
             })
         )
 
-        isBusy ||= preWriteRC.isLoading || preWriteRC.isFetching
+        isBusy ||=
+            preWriteRC.isLoading ||
+            preWriteRC.isFetching ||
+            writeRCs[index].isLoading ||
+            writeRCs[index].isFetching
     })
 
     return { writeRCs, isBusy }
@@ -345,17 +349,11 @@ function LotteryEntrance() {
             <div>
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
-                    disabled={
-                        !writeRCs[0]?.write ||
-                        !isSuccessAll ||
-                        isBusy ||
-                        writeRCs[0]?.isFetching ||
-                        writeRCs[0]?.isLoading
-                    }
+                    disabled={!writeRCs[0]?.write || !isSuccessAll || isBusy}
                     hidden={hideButton}
                     onClick={() => writeRCs[0]?.write?.()}
                 >
-                    {isBusy || writeRCs[0]?.isFetching || writeRCs[0]?.isLoading ? (
+                    {isBusy ? (
                         <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
                     ) : (
                         <div>Enter Lottery</div>
