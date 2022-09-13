@@ -47,13 +47,16 @@ export default function Header() {
                 // we get the url from callback and push it to the router to avoid page refreshing
                 push(url)
             } catch (error) {
-                console.log("SignIn Rejected - ", error)
+                const errorMsg = !error.message.__proto__.constructor.name.includes("Array")
+                    ? error.message
+                    : "SignIn denied by user"
+                console.log("SignIn Rejected - ", errorMsg)
                 disconnect()
 
                 // Notify User
                 dispatch({
                     type: "error",
-                    message: error.message,
+                    message: errorMsg,
                     title: "SignIn Failed",
                     icon: "bell",
                     position: "topR",
