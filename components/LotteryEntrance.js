@@ -85,7 +85,7 @@ function readContract(chain, entranceFee, numPlayers, recentWinner) {
     return { dataR, lAddress, updateUI, isSuccessAll }
 }
 
-function writeContract(dataR, lotteryAddress, handleNewNotification) {
+function writeContract(dataR, lotteryAddress, handleNewNotification, handleErrorNotification) {
     const addRecentTransaction = useAddRecentTransaction()
     const {
         config: writeConfig,
@@ -104,10 +104,15 @@ function writeContract(dataR, lotteryAddress, handleNewNotification) {
     const writeRC = useContractWrite({
         ...writeConfig,
         onError(error) {
-            console.log(
-                "On Contract enterLottery Error - \n",
-                JSON.parse(JSON.stringify(error.message)) // {code, message}
-            )
+            // {code, message}
+            var msg = JSON.parse(
+                error.message
+                    .split("[ethjs-query] while formatting outputs from RPC ")[1]
+                    .slice(1, -1)
+            ).value.data.message
+
+            console.log("On Contract enterLottery Error - ", msg)
+            handleErrorNotification(msg)
         },
         onSuccess(tx) {
             ;(async () => {
@@ -189,16 +194,29 @@ function LotteryEntrance() {
         isSuccessAll,
     } = readContract(chain, entranceFee, numPlayers, recentWinner)
 
-    const { writeRC, isBusy } = writeContract(dataR, lotteryAddress, (type, icon, position) => {
-        updateUI(true)
-        dispatch({
-            type: "info",
-            message: "Transaction Complete!",
-            title: "Transaction Notification",
-            icon: "bell",
-            position: "topR",
-        })
-    })
+    const { writeRC, isBusy } = writeContract(
+        dataR,
+        lotteryAddress,
+        (type, icon, position) => {
+            updateUI(true)
+            dispatch({
+                type: "info",
+                message: "Transaction Complete!",
+                title: "Transaction Notification",
+                icon: "bell",
+                position: "topR",
+            })
+        },
+        (msg, type, icon, position) => {
+            dispatch({
+                type: "error",
+                message: msg,
+                title: "Failed to Enter Lottery",
+                icon: "bell",
+                position: "topR",
+            })
+        }
+    )
 
     useContractEvent({
         addressOrName: lotteryAddress,
@@ -339,7 +357,7 @@ function LotteryEntrance() {
                 )}
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
-                    hidden={hideButton || status !== "authenticated"}
+                    hidden={status !== "authenticated"}
                     onClick={async () => {
                         await disconnectAsync()
                         signOut({ redirect: false })
