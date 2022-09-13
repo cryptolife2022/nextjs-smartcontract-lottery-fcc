@@ -21,15 +21,15 @@ export default function Header() {
 
     useEffect(() => {
         const handleAuth = async () => {
-            const userData = { address, chain: chain.id, network: "evm" }
-            const { data } = await axios.post("/api/auth/request-message", userData, {
-                headers: {
-                    "content-type": "application/json",
-                },
-            })
-            console.log("request-message: ", data)
-            const message = data.message
             try {
+                const userData = { address, chain: chain.id, network: "evm" }
+                const { data } = await axios.post("/api/auth/request-message", userData, {
+                    headers: {
+                        "content-type": "application/json",
+                    },
+                })
+                console.log("request-message: ", data)
+                const message = data.message
                 const signature = await signMessageAsync({ message })
 
                 console.log("request-message: signature - ", signature)
@@ -44,7 +44,7 @@ export default function Header() {
                 // we get the url from callback and push it to the router to avoid page refreshing
                 push(url)
             } catch (error) {
-                console.log("SignIn Rejected")
+                console.log("SignIn Rejected - ", error)
                 disconnect()
             }
         }
