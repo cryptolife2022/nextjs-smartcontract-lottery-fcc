@@ -5,7 +5,7 @@ import { useAccount, useSignMessage, useNetwork, useDisconnect } from "wagmi"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import axios from "axios"
-import { publish } from "./events"
+import { publish } from "./utils/events"
 
 const userPage = "/user"
 

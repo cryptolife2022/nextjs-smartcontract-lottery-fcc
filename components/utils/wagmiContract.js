@@ -1,4 +1,4 @@
-import { abi, contractAddresses } from "../constants"
+import { abi, contractAddresses } from "../../constants"
 import {
     useContractRead,
     useContractReads,

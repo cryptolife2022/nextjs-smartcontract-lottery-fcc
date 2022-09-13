@@ -1,6 +1,6 @@
 import { abi, contractAddresses } from "../constants"
-import { readContract, writeContract, eventContract } from "./wagmiContract"
-import { subscribe, unsubscribe, publish, useIsSSR } from "./events"
+import { readContract, writeContract, eventContract } from "./utils/wagmiContract"
+import { subscribe, unsubscribe, publish, useIsSSR } from "./utils/events"
 import { useEffect, useState } from "react"
 //import { useWeb3Contract, useMoralis } from "react-moralis"
 import { useSession, signOut } from "next-auth/react"
