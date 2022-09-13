@@ -21,7 +21,7 @@ import { useNotification } from "web3uikit"
 
 const signInPage = "/"
 
-function readContract(methods, chain, entranceFee, numPlayers, recentWinner) {
+function readContract(methods, chain) {
     let lAddress = chain ? (chain.id in contractAddresses ? contractAddresses[chain.id][0] : 0) : 0
     let contractReadRCs = []
     var isSuccessAll = true
@@ -44,67 +44,34 @@ function readContract(methods, chain, entranceFee, numPlayers, recentWinner) {
         )
     })
 
-    let updateUI = (refreshAll, refreshSelect) => {
-        contractReadRCs.forEach(function (item, index) {
-            if (refreshAll || (refreshSelect && refreshSelect[index])) item.refetch()
-            isSuccessAll &&= item.isSuccess
-        })
-    }
-    return { contractReadRCs, lAddress, updateUI, isSuccessAll }
+    return { contractReadRCs, lAddress, isSuccessAll }
 }
 
-function writeContract(
-    method,
-    dataR,
-    lotteryAddress,
-    handleNewNotification,
-    handleErrorNotification
-) {
-    const addRecentTransaction = useAddRecentTransaction()
-    const {
-        config: writeConfig,
-        error: prepareError,
-        isError: isPrepareError,
-        isLoading: isPrepareLoading,
-        isFetching: isPrepareFetching,
-    } = usePrepareContractWrite({
-        addressOrName: lotteryAddress,
-        contractInterface: abi,
-        functionName: method,
-        overrides: {
-            value: dataR,
-        },
-    })
-    const writeRC = useContractWrite({
-        ...writeConfig,
-        onError(error) {
-            // {code, message}
-            var msg = JSON.parse(
-                error.message
-                    .split("[ethjs-query] while formatting outputs from RPC ")[1]
-                    .slice(1, -1)
-            ).value.data.message
+function writeContract(methods, lotteryAddress) {
+    let writeRCs = []
+    let isBusy = false
 
-            console.log("On Contract enterLottery Error - ", msg)
-            handleErrorNotification(msg)
-        },
-        onSuccess(tx) {
-            ;(async () => {
-                console.log("On Contract enterLottery Success", tx) // {hash, wait}
-                addRecentTransaction({
-                    hash: tx.hash,
-                    description: "Entered Smart Contract Lottery",
-                    confirmations: 1,
-                })
-                await tx.wait(1)
-                handleNewNotification()
-            })()
-        },
+    methods.forEach((method, index) => {
+        /*{config,error,isError,isLoading,isFetching}=*/
+        const preWriteRC = usePrepareContractWrite({
+            addressOrName: lotteryAddress,
+            contractInterface: abi,
+            functionName: method["func"],
+            overrides: method["overrides"],
+        })
+
+        writeRCs.push(
+            useContractWrite({
+                ...preWriteRC.config,
+                onError: method["onError"],
+                onSuccess: method["onSuccess"],
+            })
+        )
+
+        isBusy ||= preWriteRC.isLoading || preWriteRC.isFetching
     })
 
-    let isBusy = isPrepareLoading || isPrepareFetching
-
-    return { writeRC, isBusy }
+    return { writeRCs, isBusy }
 }
 
 function LotteryEntrance() {
@@ -142,6 +109,7 @@ function LotteryEntrance() {
     }
 
     const dispatch = useNotification()
+    const addRecentTransaction = useAddRecentTransaction()
     const { chain } = useNetwork()
     const { chains, error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork({
         throwForSwitchChainNotSupported: true,
@@ -164,7 +132,6 @@ function LotteryEntrance() {
     const {
         contractReadRCs,
         lAddress: lotteryAddress,
-        updateUI,
         isSuccessAll,
     } = readContract(
         [
@@ -202,37 +169,70 @@ function LotteryEntrance() {
                 },
             },
         ],
-        chain,
-        entranceFee,
-        numPlayers,
-        recentWinner
+        chain
     )
 
-    let dataR = contractReadRCs[0]["data"]
+    const updateUI = (refreshAll, refreshSelect) => {
+        contractReadRCs.forEach(function (item, index) {
+            if (refreshAll || (refreshSelect && refreshSelect[index])) item.refetch()
+            isSuccessAll &&= item.isSuccess
+        })
+    }
 
-    const { writeRC, isBusy } = writeContract(
-        "enterLottery",
-        dataR,
-        lotteryAddress,
-        (type, icon, position) => {
-            updateUI(true)
-            dispatch({
-                type: type || "info",
-                message: "Transaction Complete!",
-                title: "Transaction Notification",
-                icon: icon || "bell",
-                position: position || "topR",
-            })
-        },
-        (msg, type, icon, position) => {
-            dispatch({
-                type: type || "error",
-                message: msg,
-                title: "Failed to Enter Lottery",
-                icon: icon || "bell",
-                position: position || "topR",
-            })
-        }
+    const handleNewNotification = (type, icon, position) => {
+        updateUI(true)
+        dispatch({
+            type: type || "info",
+            message: "Transaction Complete!",
+            title: "Transaction Notification",
+            icon: icon || "bell",
+            position: position || "topR",
+        })
+    }
+
+    const handleErrorNotification = (msg, type, icon, position) => {
+        dispatch({
+            type: type || "error",
+            message: msg,
+            title: "Failed to Enter Lottery",
+            icon: icon || "bell",
+            position: position || "topR",
+        })
+    }
+
+    const { writeRCs, isBusy } = writeContract(
+        [
+            {
+                func: "enterLottery",
+                overrides: {
+                    value: contractReadRCs[0]["data"],
+                },
+                onError: (error) => {
+                    // {code, message}
+                    var msg = JSON.parse(
+                        error.message
+                            .split("[ethjs-query] while formatting outputs from RPC ")[1]
+                            .slice(1, -1)
+                    ).value.data.message
+
+                    console.log("On Contract enterLottery Error - ", msg)
+                    handleErrorNotification(msg)
+                },
+                onSuccess: (tx) => {
+                    ;(async () => {
+                        console.log("On Contract enterLottery Success", tx) // {hash, wait}
+                        addRecentTransaction({
+                            hash: tx.hash,
+                            description: "Entered Smart Contract Lottery",
+                            confirmations: 1,
+                        })
+                        await tx.wait(1)
+                        handleNewNotification()
+                    })()
+                },
+            },
+        ],
+        lotteryAddress
     )
 
     useContractEvent({
@@ -346,16 +346,16 @@ function LotteryEntrance() {
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
                     disabled={
-                        !writeRC?.write ||
+                        !writeRCs[0]?.write ||
                         !isSuccessAll ||
                         isBusy ||
-                        writeRC?.isFetching ||
-                        writeRC?.isLoading
+                        writeRCs[0]?.isFetching ||
+                        writeRCs[0]?.isLoading
                     }
                     hidden={hideButton}
-                    onClick={() => writeRC?.write?.()}
+                    onClick={() => writeRCs[0]?.write?.()}
                 >
-                    {isBusy || writeRC?.isFetching || writeRC?.isLoading ? (
+                    {isBusy || writeRCs[0]?.isFetching || writeRCs[0]?.isLoading ? (
                         <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
                     ) : (
                         <div>Enter Lottery</div>

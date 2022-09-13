@@ -102,7 +102,7 @@ const { connectors } = getDefaultWallets({
 const client = createClient({
     provider,
     webSocketProvider,
-    autoConnect: false,
+    autoConnect: true,
     // added connectors from rainbowkit
     connectors,
 })
