@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import axios from "axios"
 import { useAccount } from "./utils/wagmiAccount"
+import { useNotification } from "web3uikit"
 
 const userPage = "/user"
 const signOutRedirectPath = "/"
@@ -18,6 +19,8 @@ export default function Header() {
     const { disconnect } = useDisconnect()
     const { push } = useRouter()
     const { address, isConnected } = useAccount()
+
+    const dispatch = useNotification()
 
     useEffect(() => {
         const handleAuth = async () => {
@@ -46,6 +49,15 @@ export default function Header() {
             } catch (error) {
                 console.log("SignIn Rejected - ", error)
                 disconnect()
+
+                // Notify User
+                dispatch({
+                    type: "error",
+                    message: error.message,
+                    title: "SignIn Failed",
+                    icon: "bell",
+                    position: "topR",
+                })
             }
         }
         if (status === "unauthenticated" && isConnected) {
