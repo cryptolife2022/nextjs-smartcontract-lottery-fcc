@@ -20,9 +20,22 @@ function LotteryEntrance() {
             console.log(`Session NOT Authenticated ... redirected to Sign in Page`)
         },
     })
-
+    //
+    // Connecting with Web3 Wallet
+    //
     const { disconnectAsync } = useDisconnect()
     const { address: walletAddress } = useAccount()
+    const { chain } = useNetwork()
+    const { chains, error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork({
+        throwForSwitchChainNotSupported: true,
+        onSuccess(data) {
+            console.log("useSwitchNetwork Success", data)
+        },
+        onError(error) {
+            console.log("useSwitchNetwork Error", error)
+        },
+    })
+    //const { chainId } = useMoralis()
 
     switch (status) {
         case "authenticated":
@@ -44,25 +57,22 @@ function LotteryEntrance() {
         //console.log(`Signed in as ${status}`)
     }
 
+    //
+    // UI Interaction
+    //
     const dispatch = useNotification()
     const addRecentTransaction = useAddRecentTransaction()
-    const { chain } = useNetwork()
-    const { chains, error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork({
-        throwForSwitchChainNotSupported: true,
-        onSuccess(data) {
-            console.log("useSwitchNetwork Success", data)
-        },
-        onError(error) {
-            console.log("useSwitchNetwork Error", error)
-        },
-    })
-    //const { chainId } = useMoralis()
+    //
+    // Component Rendered UI Interaction
+    //
     const [chainId, setChainId] = useState(0)
     const [hideButton, setHideButton] = useState(true)
     const [entranceFee, setEntranceFee] = useState(BigNumber.from("0"))
     const [numPlayers, setNumPlayers] = useState(0)
     const [recentWinner, setRecentWinner] = useState("")
     const [lotteryConnector, setLotteryConnector] = useState(null)
+
+    // UI Hydration Bug fix
     const isSSR = useIsSSR()
 
     const {
@@ -107,6 +117,25 @@ function LotteryEntrance() {
         ],
         chain
     )
+
+    eventContract(lotteryAddress, "WinnerPicked", (event) => {
+        console.log("WinnerPicked - ", event, "numPlayers = ", numPlayers)
+        // Prevent old events from coming through the queue ...
+        if (numPlayers == 0) return
+
+        // Notify User
+        dispatch({
+            type: "info",
+            message: "Winner Picked! " + event[1].args["winner"],
+            title: "Lottery Notification",
+            icon: "bell",
+            position: "topR",
+        })
+        // Update Stats on screen
+        publish("lottery_getNumPlayers", { data: 0 })
+        publish("lottery_getRecentWinner", { data: event[1].args["winner"] })
+        // updateUI(false,[false,true,true])
+    })
 
     const updateUI = (refreshAll, refreshSelect) => {
         contractReadRCs.forEach(function (item, index) {
@@ -170,25 +199,6 @@ function LotteryEntrance() {
         ],
         lotteryAddress
     )
-
-    eventContract(lotteryAddress, "WinnerPicked", (event) => {
-        console.log("WinnerPicked - ", event, "numPlayers = ", numPlayers)
-        // Prevent old events from coming through the queue ...
-        if (numPlayers == 0) return
-
-        // Notify User
-        dispatch({
-            type: "info",
-            message: "Winner Picked! " + event[1].args["winner"],
-            title: "Lottery Notification",
-            icon: "bell",
-            position: "topR",
-        })
-        // Update Stats on screen
-        publish("lottery_getNumPlayers", { data: 0 })
-        publish("lottery_getRecentWinner", { data: event[1].args["winner"] })
-        // updateUI(false,[false,true,true])
-    })
 
     useEffect(() => {
         if (!chain) return
