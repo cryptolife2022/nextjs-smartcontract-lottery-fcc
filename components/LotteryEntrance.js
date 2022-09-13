@@ -21,8 +21,10 @@ import { useNotification } from "web3uikit"
 
 const signInPage = "/"
 
-function readContract(chain, entranceFee, numPlayers, recentWinner) {
+function readContract(methods, chain, entranceFee, numPlayers, recentWinner) {
     let lAddress = chain ? (chain.id in contractAddresses ? contractAddresses[chain.id][0] : 0) : 0
+    let contractReadRCs = []
+    var isSuccessAll = true
 
     const readConfig = {
         addressOrName: lAddress,
@@ -30,62 +32,34 @@ function readContract(chain, entranceFee, numPlayers, recentWinner) {
         enabled: lAddress ? true : false,
     }
 
-    const {
-        data: dataR,
-        isSuccess: isSuccess1,
-        /*
-            isError: isErrorR,
-            isLoading: isLoadingR,
-            */
-        refetch: refetch1,
-    } = useContractRead({
-        ...readConfig,
-        functionName: "getEntranceFee",
-        onError(error) {
-            console.log("On Contract getEntranceFee", error)
-        },
-        onSuccess(data) {
-            console.log(
-                "On Contract getEntranceFee Success",
-                ethers.utils.formatUnits(data, "ether") + " ETH"
-            )
-            publish("lottery_getEntranceFee", { data })
-        },
-    })
-    const { isSuccess: isSuccess2, refetch: refetch2 } = useContractRead({
-        ...readConfig,
-        functionName: "getNumPlayers",
-        onError(error) {
-            console.log("On Contract getNumPlayers", error)
-        },
-        onSuccess(data) {
-            console.log("On Contract getNumPlayers Success", data.toNumber())
-            publish("lottery_getNumPlayers", { data })
-        },
+    methods.forEach((method) => {
+        /* const { data,isSuccess,isError,isLoading,refetch } = */
+        contractReadRCs.push(
+            useContractRead({
+                ...readConfig,
+                functionName: method["func"],
+                onError: method["onError"],
+                onSuccess: method["onSuccess"],
+            })
+        )
     })
 
-    const { isSuccess: isSuccess3, refetch: refetch3 } = useContractRead({
-        ...readConfig,
-        functionName: "getRecentWinner",
-        onError(error) {
-            console.log("On Contract getRecentWinner", error)
-        },
-        onSuccess(data) {
-            console.log("On Contract getRecentWinner Address Success", data)
-            publish("lottery_getRecentWinner", { data })
-        },
-    })
-
-    let updateUI = (refreshAll, r1, r2, r3) => {
-        if (r1 || refreshAll) refetch1()
-        if (r2 || refreshAll) refetch2()
-        if (r3 || refreshAll) refetch3()
+    let updateUI = (refreshAll, refreshSelect) => {
+        contractReadRCs.forEach(function (item, index) {
+            if (refreshAll || (refreshSelect && refreshSelect[index])) item.refetch()
+            isSuccessAll &&= item.isSuccess
+        })
     }
-    let isSuccessAll = isSuccess1 && isSuccess2 && isSuccess3
-    return { dataR, lAddress, updateUI, isSuccessAll }
+    return { contractReadRCs, lAddress, updateUI, isSuccessAll }
 }
 
-function writeContract(dataR, lotteryAddress, handleNewNotification, handleErrorNotification) {
+function writeContract(
+    method,
+    dataR,
+    lotteryAddress,
+    handleNewNotification,
+    handleErrorNotification
+) {
     const addRecentTransaction = useAddRecentTransaction()
     const {
         config: writeConfig,
@@ -96,7 +70,7 @@ function writeContract(dataR, lotteryAddress, handleNewNotification, handleError
     } = usePrepareContractWrite({
         addressOrName: lotteryAddress,
         contractInterface: abi,
-        functionName: "enterLottery",
+        functionName: method,
         overrides: {
             value: dataR,
         },
@@ -188,32 +162,75 @@ function LotteryEntrance() {
     const isSSR = useIsSSR()
 
     const {
-        dataR,
+        contractReadRCs,
         lAddress: lotteryAddress,
         updateUI,
         isSuccessAll,
-    } = readContract(chain, entranceFee, numPlayers, recentWinner)
+    } = readContract(
+        [
+            {
+                func: "getEntranceFee",
+                onError: (error) => {
+                    console.log(`On Contract getEntranceFee ${error}`)
+                },
+                onSuccess: (data) => {
+                    console.log(
+                        `On Contract getEntranceFee Success`,
+                        ethers.utils.formatUnits(data, "ether") + " ETH"
+                    )
+                    publish("lottery_getEntranceFee", { data })
+                },
+            },
+            {
+                func: "getNumPlayers",
+                onError: (error) => {
+                    console.log(`On Contract getNumPlayers ${error}`)
+                },
+                onSuccess: (data) => {
+                    console.log("On Contract getNumPlayers Success", data.toNumber())
+                    publish("lottery_getNumPlayers", { data })
+                },
+            },
+            {
+                func: "getRecentWinner",
+                onError: (error) => {
+                    console.log(`On Contract getRecentWinner ${error}`)
+                },
+                onSuccess: (data) => {
+                    console.log("On Contract getRecentWinner Address Success", data)
+                    publish("lottery_getRecentWinner", { data })
+                },
+            },
+        ],
+        chain,
+        entranceFee,
+        numPlayers,
+        recentWinner
+    )
+
+    let dataR = contractReadRCs[0]["data"]
 
     const { writeRC, isBusy } = writeContract(
+        "enterLottery",
         dataR,
         lotteryAddress,
         (type, icon, position) => {
             updateUI(true)
             dispatch({
-                type: "info",
+                type: type || "info",
                 message: "Transaction Complete!",
                 title: "Transaction Notification",
-                icon: "bell",
-                position: "topR",
+                icon: icon || "bell",
+                position: position || "topR",
             })
         },
         (msg, type, icon, position) => {
             dispatch({
-                type: "error",
+                type: type || "error",
                 message: msg,
                 title: "Failed to Enter Lottery",
-                icon: "bell",
-                position: "topR",
+                icon: icon || "bell",
+                position: position || "topR",
             })
         }
     )
@@ -239,7 +256,7 @@ function LotteryEntrance() {
             // Update Stats on screen
             publish("lottery_getNumPlayers", { data: 0 })
             publish("lottery_getRecentWinner", { data: event[1].args["winner"] })
-            // updateUI(false,false,true,true)
+            // updateUI(false,[false,true,true])
         },
     })
 
