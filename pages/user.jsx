@@ -4,6 +4,7 @@ import { getSession, signOut } from "next-auth/react"
 import { useRouter } from "next/router"
 import { useDisconnect } from "wagmi"
 import { subscribe, useIsSSR } from "../components/utils/events"
+import { useEffect, useState } from "react"
 
 import { useAccount } from "../components/utils/wagmiAccount"
 
@@ -15,9 +16,16 @@ function User(/*{ user }*/) {
     //
     // Client side rendering
     //
-    subscribe("web3_onConnect", function (event) {
-        setUser({ address: event.detail.address })
-    })
+    useEffect(() => {
+        subscribe("web3_onConnect", function (event) {
+            setUser({ address: event.detail.address })
+        })
+
+        return () => {
+            console.log("Effect Cleanup")
+            unsubscribe("web3_onConnect")
+        }
+    }, [])
 
     const { address, isConnected } = useAccount(signOutRedirectPath)
     const [user, setUser] = useState(isConnected ? { address } : {})
