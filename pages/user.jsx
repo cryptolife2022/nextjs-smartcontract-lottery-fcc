@@ -12,6 +12,9 @@ function User(/*{ user }*/) {
     const { disconnect } = useDisconnect()
     const isSSR = useIsSSR()
 
+    const { address, isConnected } = useAccount(signOutRedirectPath)
+    const [user, setUser] = useState(isConnected ? { address } : {})
+
     //
     // Client side rendering
     //
@@ -25,9 +28,6 @@ function User(/*{ user }*/) {
             unsubscribe("web3_onConnect")
         }
     }, [])
-
-    const { address, isConnected } = useAccount(signOutRedirectPath)
-    const [user, setUser] = useState(isConnected ? { address } : {})
 
     return (
         <div>
