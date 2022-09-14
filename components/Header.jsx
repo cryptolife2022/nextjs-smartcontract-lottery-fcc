@@ -1,68 +1,39 @@
-import { userPage } from "../constants"
+import { useRouter } from "next/router"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 //import { ConnectKitButton as ConnectButton } from "connectkit"
 import { signIn, useSession } from "next-auth/react"
-import { useSignMessage, useNetwork, useDisconnect } from "wagmi"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/router"
-import axios from "axios"
-import { useAccount } from "./utils/wagmiAccount"
+import { useNetwork, useDisconnect, useSignMessage } from "wagmi"
+import { useEffect } from "react"
+import { useAccount, handleAuth } from "./utils/wagmiAccount"
 import { useNotification } from "web3uikit"
 
 export default function Header() {
-    const { status } = useSession()
+    const { push: router } = useRouter()
     const { chain } = useNetwork()
-
-    const { signMessageAsync } = useSignMessage()
-    const { disconnect } = useDisconnect()
-    const { push } = useRouter()
+    const { status } = useSession()
     const { address, isConnected } = useAccount()
-
     const dispatch = useNotification()
+    const { disconnect } = useDisconnect()
+    const { signMessageAsync } = useSignMessage()
 
     useEffect(() => {
-        const handleAuth = async () => {
-            try {
-                const userData = { address, chain: chain.id, network: "evm" }
-                const { data } = await axios.post("/api/auth/request-message", userData, {
-                    headers: {
-                        "content-type": "application/json",
-                    },
-                })
-                console.log("request-message: ", data)
-                const message = data.message
-                const signature = await signMessageAsync({ message })
-
-                console.log("request-message: signature - ", signature)
-                // redirect user after success authentication to 'userPage' page
-                const { url } = await signIn("credentials", {
-                    message,
-                    signature,
-                    redirect: false, //let user go to "userPage" if they want to ... demo purposes only
-                    callbackUrl: userPage,
-                })
-                // instead of using signIn(..., redirect: userPage)
-                // we get the url from callback and push it to the router to avoid page refreshing
-                push(url)
-            } catch (error) {
-                const errorMsg = !error.message.__proto__.constructor.name.includes("Array")
-                    ? error.message
-                    : "SignIn denied by user"
-                console.log("SignIn Rejected - ", errorMsg)
-                disconnect()
-
-                // Notify User
-                dispatch({
-                    type: "error",
-                    message: errorMsg,
-                    title: "SignIn Failed",
-                    icon: "bell",
-                    position: "topR",
-                })
-            }
-        }
         if (status === "unauthenticated" && isConnected) {
-            handleAuth()
+            handleAuth({
+                userData: { address: address, chain: chain.id, network: "evm" },
+                router: router,
+                disconnect: (errorMsg) => {
+                    disconnect()
+                    dispatch({
+                        type: "error",
+                        message: errorMsg,
+                        title: "SignIn Failed",
+                        icon: "bell",
+                        position: "topR",
+                    })
+                },
+                signMessageAsync: signMessageAsync,
+                signIn: signIn,
+            })
         } else {
             console.log("Header login: status - ", status)
         }

@@ -5,6 +5,7 @@ const favIcon = "/favicon.ico"
 const userPage = "/user"
 const signOutRedirectPath = "/"
 const signInPage = "/"
+const loginRequestPath = "/api/auth/request-message"
 
 module.exports = {
     userPage,
@@ -14,4 +15,5 @@ module.exports = {
     favIcon,
     abi,
     contractAddresses,
+    loginRequestPath,
 }
