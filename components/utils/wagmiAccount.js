@@ -1,4 +1,4 @@
-import { signOut } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useAccount as wagmiAccount } from "wagmi"
 import { publish } from "./events"
 
@@ -15,6 +15,8 @@ const {
 */
 
 function useAccount(signOutRedirectPath) {
+    const { status } = useSession()
+
     return wagmiAccount({
         fetchEns: true,
         onConnect({ address, connector, isReconnected }) {
@@ -28,7 +30,7 @@ function useAccount(signOutRedirectPath) {
             console.log("Disconnected from Web3 Wallet redirectPath(", path, ")")
             publish("web3_onDisconnect")
 
-            signOut(path)
+            if (status !== "unauthenticated") signOut(path)
         },
     })
 }
