@@ -9,9 +9,6 @@ import { useDisconnect, useEnsName, useNetwork, useSwitchNetwork } from "wagmi"
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit"
 import { useNotification } from "web3uikit"
 
-const signInPage = "/"
-const signOutRedirectPath = "/"
-
 function LotteryEntrance() {
     //
     // Used for logging into the WEBSITE, not into the wallet

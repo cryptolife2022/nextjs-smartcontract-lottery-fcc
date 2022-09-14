@@ -1,6 +1,7 @@
 import "../styles/globals.css"
 import "@rainbow-me/rainbowkit/styles.css"
 
+import { appName } from "../constants"
 //import { MoralisProvider } from "react-moralis"
 import { createClient, configureChains, defaultChains, WagmiConfig, chain } from "wagmi"
 //import { InjectedConnector } from "wagmi/connectors/injected"
@@ -15,7 +16,6 @@ import {
     wallet,
     getDefaultWallets,
     RainbowKitProvider,
-    DisclaimerComponent,
 } from "@rainbow-me/rainbowkit"
 
 const hardhatId = process.env.HARDHAT_ID
@@ -37,7 +37,7 @@ const { provider, webSocketProvider, chains } = configureChains(cchains, [public
 //     typeof !window?.ethereum && !window.ethereum.isMetaMask && !window.ethereum.isCoinbaseWallet
 
 const walletConfig = {
-    appName: "Smart Contract Lottery",
+    appName: appName,
     chains: chains,
     options: {
         shimDisconnect: true,
@@ -88,13 +88,13 @@ const connectors = [
 
 const client = createClient(
     getDefaultClient({
-        appName: "Smart Contract Lottery",
+        appName: appName,
         chains,
     })
 )
 
 const { connectors } = getDefaultWallets({
-    appName: "Smart Contract Lottery",
+    appName: appName,
     chains,
 })
 */
@@ -163,7 +163,7 @@ function MyApp({ Component, pageProps }) {
                     chains={chains}
                     showRecentTransactions={true}
                     appInfo={{
-                        appName: "Smart Contract Lottery",
+                        appName: appName,
                         disclaimer: disclaimer,
                     }}
                 >

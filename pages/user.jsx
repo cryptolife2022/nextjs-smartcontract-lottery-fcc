@@ -1,3 +1,4 @@
+import { signOutRedirectPath, signInPage } from "../constants"
 import { useState } from "react"
 import { getSession, signOut } from "next-auth/react"
 import { useRouter } from "next/router"
@@ -5,10 +6,6 @@ import { useDisconnect } from "wagmi"
 import { subscribe, useIsSSR } from "../components/utils/events"
 
 import { useAccount } from "../components/utils/wagmiAccount"
-
-const userPage = "/user"
-const signOutRedirectPath = "/"
-const signInPage = "/"
 
 function User(/*{ user }*/) {
     const { push } = useRouter()

@@ -22,10 +22,13 @@ function useAccount(signOutRedirectPath) {
             publish("web3_onConnect", { address, connector, isReconnected })
         },
         onDisconnect() {
-            const path = signOutRedirectPath ? signOutRedirectPath : false
+            const path = signOutRedirectPath
+                ? { callbackUrl: signOutRedirectPath }
+                : { redirect: false }
             console.log("Disconnected from Web3 Wallet redirectPath(", path, ")")
             publish("web3_onDisconnect")
-            signOut({ redirect: path })
+
+            signOut(path)
         },
     })
 }

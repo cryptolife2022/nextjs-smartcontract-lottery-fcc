@@ -1,3 +1,4 @@
+import { userPage } from "../constants"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 //import { ConnectKitButton as ConnectButton } from "connectkit"
 import { signIn, useSession } from "next-auth/react"
@@ -7,9 +8,6 @@ import { useRouter } from "next/router"
 import axios from "axios"
 import { useAccount } from "./utils/wagmiAccount"
 import { useNotification } from "web3uikit"
-
-const userPage = "/user"
-const signOutRedirectPath = "/"
 
 export default function Header() {
     const { status } = useSession()
