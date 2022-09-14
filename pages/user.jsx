@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { getSession, signOut } from "next-auth/react"
 import { useRouter } from "next/router"
 import { useDisconnect } from "wagmi"
-import { subscribe, useIsSSR } from "../components/utils/events"
+import { subscribe, unsubscribe, useIsSSR } from "../components/utils/events"
 
 import { useAccount } from "../components/utils/wagmiAccount"
 
@@ -20,6 +20,7 @@ function User(/*{ user }*/) {
     //
     useEffect(() => {
         subscribe("web3_onConnect", function (event) {
+            console.log("setUser", event.detail)
             setUser({ address: event.detail.address })
         })
 
@@ -27,7 +28,7 @@ function User(/*{ user }*/) {
             console.log("Effect Cleanup")
             unsubscribe("web3_onConnect")
         }
-    }, [])
+    }, [isConnected])
 
     return (
         <div>
