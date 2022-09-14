@@ -10,13 +10,13 @@ export default function Home() {
     return (
         <div className={styles.container}>
             <Head>
-                <title>Smart Contract Lottey</title>
+                <title>{appName}</title>
                 <meta name="description" content={appName} />
                 <link rel="icon" href={favIcon} />
             </Head>
-            {/*<ManualHeader></ManualHeader>*/}
-            <Header></Header>
-            <LotteryEntrance></LotteryEntrance>
+            {/*<ManualHeader />*/}
+            <Header />
+            <LotteryEntrance />
             {/* header / connect button / nav bar */}
         </div>
     )
