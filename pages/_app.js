@@ -107,7 +107,7 @@ const client = createClient({
     connectors,
 })
 
-function MyApp({ Component, pageProps }) {
+export default function MyApp({ Component, pageProps }) {
     const disclaimer = ({ Text, Link }) => (
         <Text>
             By connecting your wallet, you agree to the{" "}
@@ -177,7 +177,7 @@ function MyApp({ Component, pageProps }) {
 }
 
 /*
-function MyApp({ Component, pageProps }) {
+export default function MyApp({ Component, pageProps }) {
     return (
         <MoralisProvider initializeOnMount={false}>
             <Component {...pageProps} />
@@ -185,5 +185,3 @@ function MyApp({ Component, pageProps }) {
     )
 }
 */
-
-export default MyApp
