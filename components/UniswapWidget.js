@@ -69,7 +69,7 @@ export function UniswapWidget() {
 
     //console.log("Provider", provider)
     return (
-        <div className={`Uniswap ${styles.widget}`}>
+        <div className={`Uniswap ml-auto py-2 px-4  ${styles.connectors} ${styles.widget}`}>
             <SwapWidget
                 //jsonRpcUrlMap={jsonRpcUrlMap}
                 tokenList={TOKEN_LIST}

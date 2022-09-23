@@ -19,8 +19,10 @@ export default function Home() {
             <SelectLocale />
             {/*<ManualHeader />*/}
             <Header />
-            <LotteryEntrance />
-            <UniswapWidget />
+            <div className="p-5 border-b-2 flex flex-row">
+                <LotteryEntrance />
+                <UniswapWidget />
+            </div>
             {/* header / connect button / nav bar */}
         </div>
     )

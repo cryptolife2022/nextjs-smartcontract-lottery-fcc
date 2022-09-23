@@ -182,21 +182,21 @@ function LotteryEntrance() {
         lotteryAddress
     )
 
-    // Not Contract Address found for the Chain selected
-    if (chain && !lotteryAddress) {
-        // Only care about contracts on valid networks
-        console.log(`Invalid Chain ID detected for selected Lottery Contract: ${chain.id}`)
-        hideButton.value = true
-
-        // Only switchNetwork if Connector is avail
-        if (lotteryConnector.value) {
-            console.log(`Optional2: Switching back to Hardhat Chain ID,`)
-            //switchNetwork(31337)
-        }
-    }
-
     useEffect(() => {
         if (!chain) return
+
+        // Not Contract Address found for the Chain selected
+        if (!lotteryAddress) {
+            // Only care about contracts on valid networks
+            console.log(`Invalid Chain ID detected for selected Lottery Contract: ${chain.id}`)
+            hideButton.value = true
+
+            // Only switchNetwork if Connector is avail
+            if (lotteryConnector.value) {
+                console.log(`Optional2: Switching back to Hardhat Chain ID,`)
+                //switchNetwork(31337)
+            }
+        }
 
         let cchainId = chain?.id ?? -1
         if (cchainId != chainId) {
@@ -284,40 +284,36 @@ function LotteryEntrance() {
 
     // Have a function to enter the Lottery
     return (
-        <div className="p-5">
+        <div>
             Hi from lottery entrance!
-            <div>
-                <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
-                    disabled={!writeRCs[0]?.write || !isSuccessAll || isBusy}
-                    hidden={hideButton.value}
-                    onClick={() => writeRCs[0]?.write?.()}
-                >
-                    {isBusy ? (
-                        <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
-                    ) : (
-                        <div>Enter Lottery</div>
-                    )}
-                </button>
-                {!isSSR && lotteryAddress ? (
-                    <div>
-                        <div>Entrance Fee: {entranceFee.value} ETH</div>
-                        <div>Number of Players: {numPlayers.value}</div>
-                        <div>Recent Winners : {recentWinner.value}</div>
-                    </div>
-                ) : (
-                    <div>Connection to Lottery Not Established</div>
-                )}
-                <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
-                    hidden={status !== "authenticated"}
-                    onClick={() => {
-                        disconnect()
-                    }}
-                >
-                    <div>Sign Out</div>
-                </button>
-            </div>
+            {!isSSR && lotteryAddress ? (
+                <div>
+                    <button
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
+                        disabled={!writeRCs[0]?.write || !isSuccessAll || isBusy}
+                        hidden={hideButton.value}
+                        onClick={() => writeRCs[0]?.write?.()}
+                    >
+                        {isBusy ? (
+                            <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
+                        ) : (
+                            <div>Enter Lottery</div>
+                        )}
+                    </button>
+                    <div>Entrance Fee: {entranceFee.value} ETH</div>
+                    <div>Number of Players: {numPlayers.value}</div>
+                    <div>Recent Winners : {recentWinner.value}</div>
+                </div>
+            ) : (
+                <div>Connection to Lottery Contract Not Established</div>
+            )}
+            <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
+                hidden={status !== "authenticated"}
+                onClick={() => disconnect()}
+            >
+                <div>Sign Out</div>
+            </button>
         </div>
     )
 }
