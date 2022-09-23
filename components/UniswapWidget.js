@@ -69,9 +69,9 @@ export function UniswapWidget() {
 
     //console.log("Provider", provider)
     return (
-        <div className={styles.widget}>
+        <div className={`Uniswap ${styles.widget}`}>
             <SwapWidget
-                jsonRpcUrlMap={jsonRpcUrlMap}
+                //jsonRpcUrlMap={jsonRpcUrlMap}
                 tokenList={TOKEN_LIST}
                 //provider={provider} //Not needed because you get it from the WagmiConfig
                 locale={localePage}

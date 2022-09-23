@@ -28,6 +28,13 @@
     animation: 2.5s ease-out 1 spotlight;
 }
 
+.widget {
+    background-color: #f7f8fa;
+    border-radius: 1rem;
+    height: 356px;
+    width: 360px;
+}
+
 .main {
     min-height: 100vh;
     padding: 4rem 0;
