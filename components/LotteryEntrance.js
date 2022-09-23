@@ -1,3 +1,4 @@
+import { signal } from "@preact/signals"
 import { readContract, writeContract, eventContract } from "./utils/wagmiContract"
 import { useAccount } from "./utils/wagmiAccount"
 import { subscribe, unsubscribe, publish, useIsSSR } from "./utils/events"
@@ -8,6 +9,13 @@ import { useSession } from "next-auth/react"
 import { useDisconnect, useEnsName, useNetwork, useSwitchNetwork } from "wagmi"
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit"
 import { useNotification } from "web3uikit"
+
+const hideButton = signal(true)
+const entranceFee = signal(0)
+const numPlayers = signal(0)
+const recentWinner = signal("")
+const lotteryConnector = signal(null)
+let chainId = 0
 
 function LotteryEntrance() {
     //
@@ -36,26 +44,6 @@ function LotteryEntrance() {
     })
     //const { chainId } = useMoralis()
 
-    switch (status) {
-        case "authenticated":
-            // {
-            //     user: {
-            //         name: string
-            //         email: string
-            //         image: string
-            //         address: string
-            //     },
-            //     expires: Date // This is the expiry of the session, not any of the tokens within the session
-            // }
-            //console.log(`Signed in as ${JSON.stringify(session.user)}`)
-            break
-        case "loading":
-            //console.log("Signing in ...")
-            break
-        default:
-        //console.log(`Signed in as ${status}`)
-    }
-
     //
     // UI Interaction
     //
@@ -64,14 +52,9 @@ function LotteryEntrance() {
     //
     // Component Rendered UI Interaction
     //
-    const [chainId, setChainId] = useState(0)
-    const [hideButton, setHideButton] = useState(true)
-    const [entranceFee, setEntranceFee] = useState(BigNumber.from("0"))
-    const [numPlayers, setNumPlayers] = useState(0)
-    const [recentWinner, setRecentWinner] = useState("")
-    const [lotteryConnector, setLotteryConnector] = useState(null)
 
     // UI Hydration Bug fix
+    // Not neccessary with signals
     const isSSR = useIsSSR()
 
     const {
@@ -118,9 +101,9 @@ function LotteryEntrance() {
     )
 
     eventContract(lotteryAddress, "WinnerPicked", (event) => {
-        console.log("WinnerPicked - ", event, "numPlayers = ", numPlayers)
+        console.log("WinnerPicked - ", event, "numPlayers = ", numPlayers.value)
         // Prevent old events from coming through the queue ...
-        if (numPlayers == 0) return
+        if (numPlayers.value == 0) return
 
         // Notify User
         dispatch({
@@ -199,42 +182,38 @@ function LotteryEntrance() {
         lotteryAddress
     )
 
+    // Not Contract Address found for the Chain selected
+    if (chain && !lotteryAddress) {
+        // Only care about contracts on valid networks
+        console.log(`Invalid Chain ID detected for selected Lottery Contract: ${chain.id}`)
+        hideButton.value = true
+
+        // Only switchNetwork if Connector is avail
+        if (lotteryConnector.value) {
+            console.log(`Optional2: Switching back to Hardhat Chain ID,`)
+            //switchNetwork(31337)
+        }
+    }
+
     useEffect(() => {
         if (!chain) return
 
         let cchainId = chain?.id ?? -1
-        if (cchainId != chainId) setChainId(cchainId)
+        if (cchainId != chainId) {
+            chainId = cchainId
 
-        // Only care about contracts on valid networks
-        if (!lotteryAddress) {
-            console.log(`Invalid Chain ID detected: ${chain.id}`)
-            setHideButton(true)
-
-            // Only switchNetwork if Connector is avail
-            if (lotteryConnector) {
-                console.log(`Optional2: Switching back to Hardhat Chain ID,`)
-                //switchNetwork(31337)
-            }
-        } else {
-            console.log(`Chain ID : ${chain.id}`)
-        }
-    }, [chain])
-
-    useEffect(() => {
-        if (chainId == 0) return
-
-        console.log(`Chain ID Choosen: ${chainId}, WalletAddress is: ${walletAddress}`)
-        subscribe("web3_onConnect", (e) => {
-            setLotteryConnector(e.detail.connector)
-            console.log(
-                "web3_onConnect : Contract Address - ",
-                lotteryAddress,
-                ", Connected to Wallet Address",
-                e.detail.address,
-                ", e.detail.connector ",
-                lotteryConnector
-            )
-            /*
+            console.log(`Chain ID Choosen: ${chainId}, WalletAddress is: ${walletAddress}`)
+            subscribe("web3_onConnect", (e) => {
+                lotteryConnector.value = e.detail.connector
+                console.log(
+                    "web3_onConnect : Contract Address - ",
+                    lotteryAddress,
+                    ", Connected to Wallet Address",
+                    e.detail.address,
+                    ", e.detail.connector ",
+                    lotteryConnector.value
+                )
+                /*
                 if (lotteryAddress) {
                     //refetch1()
                 } else if (switchNetwork) {
@@ -242,40 +221,66 @@ function LotteryEntrance() {
                     //switchNetwork(31337)
                 }
                 */
-        })
-        subscribe("web3_onDisconnect", (e) => {
-            setLotteryConnector(null)
-            setHideButton(true)
-        })
+            })
+            subscribe("web3_onDisconnect", (e) => {
+                lotteryConnector.value = null
+                hideButton.value = true
+            })
 
-        subscribe("lottery_getEntranceFee", (e) => {
-            //console.log("lottery_getEntranceFee")
-            setEntranceFee(e.detail.data)
-            setHideButton(false)
-        })
-        subscribe("lottery_getNumPlayers", (e) => {
-            //console.log("lottery_getNumPlayers")
-            setNumPlayers(e.detail.data.toString())
-        })
-        subscribe("lottery_getRecentWinner", (e) => {
-            //console.log("lottery_getRecentWinner")
-            setRecentWinner(e.detail.data)
-        })
+            subscribe("lottery_getEntranceFee", (e) => {
+                //console.log("lottery_getEntranceFee")
+                entranceFee.value = Number(ethers.utils.formatUnits(e.detail.data, "ether"))
+                //console.log("entrance fee: ", entranceFee.value)
+                hideButton.value = false
+            })
+            subscribe("lottery_getNumPlayers", (e) => {
+                //console.log("lottery_getNumPlayers")
+                numPlayers.value = Number(ethers.utils.formatUnits(e.detail.data, "ether"))
+                //console.log("lottery_getNumPlayers: ", e.detail.data)
+            })
+            subscribe("lottery_getRecentWinner", (e) => {
+                //console.log("lottery_getRecentWinner")
+                //console.log("lottery_getRecentWinner: ", e.detail.data)
+                recentWinner.value = e.detail.data
+            })
 
-        return () => {
-            console.log("Effect Cleanup")
-            unsubscribe("web3_onConnect")
-            unsubscribe("web3_onDisconnect")
+            return () => {
+                console.log("Effect Cleanup")
+                unsubscribe("web3_onConnect")
+                unsubscribe("web3_onDisconnect")
 
-            unsubscribe("lottery_getEntranceFee")
-            unsubscribe("lottery_getNumPlayers")
-            unsubscribe("lottery_getRecentWinner")
+                unsubscribe("lottery_getEntranceFee")
+                unsubscribe("lottery_getNumPlayers")
+                unsubscribe("lottery_getRecentWinner")
+            }
         }
-    }, [chainId])
+    }, [chain])
 
     useEffect(() => {
         console.log(`WalletAddress is now set to : ${walletAddress}`)
     }, [walletAddress])
+
+    switch (status) {
+        case "authenticated":
+            // {
+            //     user: {
+            //         name: string
+            //         email: string
+            //         image: string
+            //         address: string
+            //     },
+            //     expires: Date // This is the expiry of the session, not any of the tokens within the session
+            // }
+            //console.log(`Signed in as ${JSON.stringify(session.user)}`)
+            break
+        // Logging into the website ... wait
+        case "loading":
+            //console.log("Signing in ...")
+            return
+            break
+        default:
+        //console.log(`Signed in as ${status}`)
+    }
 
     // Have a function to enter the Lottery
     return (
@@ -285,7 +290,7 @@ function LotteryEntrance() {
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
                     disabled={!writeRCs[0]?.write || !isSuccessAll || isBusy}
-                    hidden={hideButton}
+                    hidden={hideButton.value}
                     onClick={() => writeRCs[0]?.write?.()}
                 >
                     {isBusy ? (
@@ -296,11 +301,9 @@ function LotteryEntrance() {
                 </button>
                 {!isSSR && lotteryAddress ? (
                     <div>
-                        <div>
-                            Entrance Fee: {ethers.utils.formatUnits(entranceFee, "ether")} ETH
-                        </div>
-                        <div>Number of Players: {numPlayers}</div>
-                        <div>Recent Winners : {recentWinner}</div>
+                        <div>Entrance Fee: {entranceFee.value} ETH</div>
+                        <div>Number of Players: {numPlayers.value}</div>
+                        <div>Recent Winners : {recentWinner.value}</div>
                     </div>
                 ) : (
                     <div>Connection to Lottery Not Established</div>
