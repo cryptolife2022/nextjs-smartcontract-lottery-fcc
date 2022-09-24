@@ -1,12 +1,13 @@
-import { signal } from "@preact/signals"
-import { readContract, writeContract, eventContract } from "./utils/wagmiContract"
-import { useAccount } from "./utils/wagmiAccount"
 import { subscribe, unsubscribe, publish, useIsSSR } from "./utils/events"
 import { useEffect, useState } from "react"
 import { BigNumber, ethers } from "ethers"
-//import { useWeb3Contract, useMoralis } from "react-moralis"
+import { signal } from "@preact/signals"
+
 import { useSession } from "next-auth/react"
 import { useDisconnect, useEnsName, useNetwork, useSwitchNetwork } from "wagmi"
+import { readContract, writeContract, eventContract } from "./utils/wagmiContract"
+import { useAccount } from "./utils/wagmiAccount"
+//import { useWeb3Contract, useMoralis } from "react-moralis"
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit"
 import { useNotification } from "web3uikit"
 
@@ -185,7 +186,7 @@ function LotteryEntrance() {
     useEffect(() => {
         if (!chain) return
 
-        // Not Contract Address found for the Chain selected
+        // No Contract Address found for the Chain selected
         if (!lotteryAddress) {
             // Only care about contracts on valid networks
             console.log(`Invalid Chain ID detected for selected Lottery Contract: ${chain.id}`)
@@ -254,7 +255,7 @@ function LotteryEntrance() {
                 unsubscribe("lottery_getRecentWinner")
             }
         }
-    }, [chain])
+    }, [chain, lotteryAddress])
 
     useEffect(() => {
         console.log(`WalletAddress is now set to : ${walletAddress}`)
