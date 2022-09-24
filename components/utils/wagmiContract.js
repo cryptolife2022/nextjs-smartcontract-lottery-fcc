@@ -18,6 +18,7 @@ export function readContract(methods, chain) {
         enabled: lAddress ? true : false,
     }
 
+    //console.log("lAddress : ", lAddress)
     methods.forEach((method) => {
         /* const { data,isSuccess,isError,isLoading,refetch } = */
         contractReadRCs.push(

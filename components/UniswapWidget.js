@@ -82,7 +82,7 @@ export function UniswapWidget() {
                     publish("web3_focusWalletConnector")
                     return false
                 }}
-                defaultInputTokenAddress={WETH}
+                defaultInputTokenAddress="NATIVE"
                 defaultInputAmount="1"
                 defaultOutputTokenAddress={UNI}
             />

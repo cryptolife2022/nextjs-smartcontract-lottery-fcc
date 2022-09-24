@@ -18,10 +18,10 @@ import {
     RainbowKitProvider,
 } from "@rainbow-me/rainbowkit"
 
-const hardhatId = process.env.HARDHAT_ID
+const hardhatId = process.env.NEXT_PUBLIC_HARDHAT_ID ?? chain.hardhat.id
+chain.hardhat.id = parseInt(hardhatId)
 const cchains = [
     chain.hardhat, //Top of the list for first default choice
-    chain.mainnet,
     chain.polygon,
     chain.ropsten,
     chain.rinkeby,
@@ -29,6 +29,7 @@ const cchains = [
     chain.kovan,
     chain.sepolia,
 ]
+if (chain.hardhat.id != chain.mainnet.id) cchains.splice(1, 0, chain.mainnet)
 
 //const { provider, webSocketProvider, chains } = configureChains(defaultChains, [publicProvider()])
 const { provider, webSocketProvider, chains } = configureChains(cchains, [publicProvider()])
@@ -108,6 +109,7 @@ const client = createClient({
 })
 
 export default function MyApp({ Component, pageProps }) {
+    //console.log("chain : ", chain)
     const disclaimer = ({ Text, Link }) => (
         <Text>
             By connecting your wallet, you agree to the{" "}

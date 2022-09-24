@@ -12,9 +12,9 @@ import { useAddRecentTransaction } from "@rainbow-me/rainbowkit"
 import { useNotification } from "web3uikit"
 
 const hideButton = signal(true)
-const entranceFee = signal(0)
-const numPlayers = signal(0)
-const recentWinner = signal("")
+const entranceFee = signal("Loading ...")
+const numPlayers = signal("Loading ...")
+const recentWinner = signal("Loading ...")
 const lotteryConnector = signal(null)
 let chainId = 0
 
