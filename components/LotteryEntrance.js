@@ -183,6 +183,8 @@ function LotteryEntrance() {
         lotteryAddress
     )
 
+    //console.log("writeRCs ", writeRCs)
+
     useEffect(() => {
         if (!chain) return
 

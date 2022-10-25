@@ -8,7 +8,7 @@ import {
 } from "wagmi"
 
 export function readContract(methods, chain) {
-    let lAddress = chain ? (chain.id in contractAddresses ? contractAddresses[chain.id][0] : 0) : 0
+    let lAddress = chain ? (chain.id in contractAddresses ? contractAddresses[chain.id][1] : 0) : 0
     let contractReadRCs = []
     var isSuccessAll = true
 

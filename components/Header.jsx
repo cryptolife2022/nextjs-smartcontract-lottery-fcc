@@ -79,8 +79,7 @@ export default function Header() {
                     ref={connectors}
                     tabIndex={-1}
                 >
-                    {/*<ConnectButton showBalance="true" showAvatar="true" label="Connect Wallet" />*/}
-                    <ConnectButton />
+                    <ConnectButton showBalance="true" showAvatar="true" label="Connect Wallet" />
                 </div>
             )}
         </div>
